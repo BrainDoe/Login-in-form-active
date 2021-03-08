@@ -18,7 +18,10 @@ input.addEventListener('input', () => {
 form.addEventListener('submit', (e) => {
   e.preventDefault();
 
-  const inputVal = input.value;
+  const inputVal = input.value.trim();
+  if (inputVal === "" || inputVal == null) {
+    return;
+  }
   const li = document.createElement('li');
   li.className = 'todo-li';
   li.innerText = inputVal;
@@ -90,18 +93,23 @@ form.addEventListener('submit', (e) => {
     del.className = 'close';
     del.innerHTML = '&times;';
     infoUl.appendChild(del);
+
+    // Time formatting
     const infoItem1 = document.createElement('li');
     infoItem1.className = 'info-item';
-    infoItem1.innerText = 'December 5, 2020. 9:00AM';
+    const now = new Date();
+    // infoItem1.innerHTML = now;
+    infoItem1.textContent = `${`${now.getDate()}`.padStart(2,0)}/${`${now.getMonth()+1}`.padStart(2,0)}/${now.getFullYear()}, ${`${now.getHours()}`.padStart(2,0)}:${`${now.getMinutes()}`.padStart(2,0)}`;
+    // infoItem1.innerText = 'December 5, 2020. 9:00AM';
     infoUl.appendChild(infoItem1);
     const infoItem2 = document.createElement('li');
     infoItem2.className = 'info-item';
+    infoItem2.style.cursor = 'pointer';
     infoItem2.innerText = 'Edit Todo';
     const item2span = document.createElement('span');
-    const item2icon = document.createElement('i');
-    item2icon.className = 'fas fa-pencil-square-o';
-    item2span.appendChild(item2icon);
-    infoItem2.appendChild(item2icon);
+    item2span.innerHTML = '<i class="fas fa-edit"></i>';
+    item2span.style.marginLeft = '180px';
+    infoItem2.appendChild(item2span);
     infoUl.appendChild(infoItem2);
     const infoItem3 = document.createElement('li');
     infoItem3.className = 'info-item';
@@ -118,16 +126,89 @@ form.addEventListener('submit', (e) => {
       if (e.target.classList.contains('info-container') || e.target.classList.contains('close')) {
         infoContainer.style.display = 'none';
       }
-      togglebtn.addEventListener('click', (e) => {
-        e.target.classList.toggle('btn-active');
-        const ul = infoIcon.parentElement.parentElement;
-        const li = infoIcon.parentElement;
-        li.style.textDecoration = 'line-through';
-        li.style.color = '#777';
-        setTimeout(() => {
-          ul.removeChild(li);
-        }, 60000);
+
+      // THE EDIT FUNCTIONALITY
+
+      infoItem2.addEventListener('click', (e) => {
+        // remove the info modal
+        infoContainer.style.display = 'none';
+        // create edit modal
+        const editModal = document.createElement('div');
+        editModal.className = 'edit-modal';
+        // create edit popup
+        const editPopup = document.createElement('div');
+        editPopup.className = 'edit-popup';
+        // create input tag
+        const editInput = document.createElement('input');
+        editInput.type = 'text';
+        editInput.className = 'edit-input';
+        const editSave = document.createElement('button');
+        editSave.type = 'submit';
+        editSave.className = 'edit-save';
+        editSave.textContent = 'Save';
+        editPopup.appendChild(editInput);
+        editPopup.appendChild(editSave);
+        editModal.appendChild(editPopup);
+        document.body.appendChild(editModal);
+
+        // get item to edit
+        const editUl = infoIcon.parentElement.parentElement;
+        const editLi = infoIcon.parentElement;
+        const toEdit = editLi.firstChild.textContent;
+
+        // grab the value and place in the input for editing
+        editInput.value = toEdit;
+
+        // save edited item
+        editSave.addEventListener('click', (e) => {
+          e.preventDefault();
+          let editedItem = editInput.value;
+          if (!editedItem) {
+            // alert('Input must be provided');
+            const alert = document.createElement('span');
+            alert.className = 'alert';
+            alert.textContent = 'Inputs must be provided';
+            editPopup.appendChild(alert);
+
+            setTimeout(() => {
+              alert.style.display = 'none';
+            }, 4000);
+            return;
+          }
+          editLi.firstChild.textContent = editedItem;
+          editModal.style.display = 'none';
+        });
+      });
+
+      infoItem3.addEventListener('click', (e) => {
+        if (e.target.classList.contains('check-complete-box')) {
+          togglebtn.classList.add('btn-active');
+          const ul = infoIcon.parentElement.parentElement;
+          const li = infoIcon.parentElement;
+          li.style.textDecoration = 'line-through';
+          li.style.color = '#777';
+
+          // Delete checked item after 24 hours
+          setTimeout(() => {
+            ul.removeChild(li);
+          }, 86400000);
+        } else {
+          togglebtn.classList.remove('btn-active');
+          const ul = infoIcon.parentElement.parentElement;
+          const li = infoIcon.parentElement;
+          li.style.textDecoration = 'none';
+          // li.style.color = '#777';
+        }
+        // e.target.classList.toggle('btn-active');
+        // const ul = infoIcon.parentElement.parentElement;
+        // const li = infoIcon.parentElement;
+        // li.style.textDecoration = 'line-through';
+        // li.style.color = '#777';
+        // setTimeout(() => {
+        //   ul.removeChild(li);
+        // }, 86400000);
       });
     });
   });
 });
+
